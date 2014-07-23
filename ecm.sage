@@ -2,6 +2,31 @@
 
 load "util.sage"
 
+#-----------------------------------------------#
+####            GLOBAL VARIABLES             ####
+#-----------------------------------------------#
+
+a = 1
+base_ext   = []
+base_ext_t = []
+#base_ext   = [base[0],base[1],1,base[0]*base[1]]
+#base_ext_t = [base[0],base[1],1,base[0]*base[1]*2*d]
+
+
+numpre = 0	# first trial division
+numecm = 0	# use ecm
+numpos = 0	# finish with another trial division
+
+numtry = 0	# number of curves tried
+
+#-----------------------------------------------#
+############# END GLOBAL VARIABLES ##############
+#-----------------------------------------------#
+
+
+#-----------------------------------------------#
+####               CURVE SETUP               ####
+#-----------------------------------------------#
 alist = [-1,1,1]
 dlist = []
 blist = []
@@ -147,6 +172,10 @@ tblist.append([	[305/851, 305/319],
 dlist.append(tdlist)
 blist.append(tblist)
 #------------------------------------------------#
+################# END CURVE SETUP ################
+#------------------------------------------------#
+
+
 
 #----------------------------------------------------------#
 # try different curves different base points
@@ -166,19 +195,16 @@ blist.append(tblist)
 #			print i, ":", lhs-rhs, lhs==rhs
 #----------------------------------------------------------#
 
-#d = (6517/196608)
-#base = [336/527,80/67]
-
-#base_ext   = [base[0],base[1],1,base[0]*base[1]]
-#base_ext_t = [base[0],base[1],1,base[0]*base[1]*2*d]
-
-a = 1
-base_ext   = []
-base_ext_t = []
 
 
-def padd_twist_ed_min_one_base(P):
+
+#----------------------------------------------------------#
+####                  POINT ARITHMETIC                  ####
+#----------------------------------------------------------#
+def padd_twist_ed_min_one_base(P,n):
 # 6M + 1*2 + 8add
+	if P == None: return
+
 	A = (P[1]-P[0])*(base_ext[1]-base_ext[0])
 	B = (P[1]+P[0])*(base_ext[1]+base_ext[0])
 	C = P[3]*base_ext_t[3]
@@ -187,10 +213,23 @@ def padd_twist_ed_min_one_base(P):
 	F = D-C
 	G = D+C
 	H = B+A
-	return [E*F,G*H,F*G]
 
-def pdbl_twist_ed(P):
+	try:
+		X = (E*F)%n
+		Y = (G*H)%n
+		Z = (F*G)%n
+	except:
+		return
+
+	return [X,Y,Z]
+
+
+#----------------------------------------------------------#
+
+def pdbl_twist_ed(P,n):
 # 4S + 4M + 1*a + 1*2 + 6add
+	if P == None: return
+
 	A = P[0]^2
 	B = P[1]^2
 	C = 2*P[2]^2
@@ -199,9 +238,24 @@ def pdbl_twist_ed(P):
 	G = D+B
 	F = G-C
 	H = D-B
-	return [E*F,G*H,F*G,E*H]
 
-def padd_twist_ed_base(P):
+	try:
+		X = (E*F)%n
+		Y = (G*H)%n
+		Z = (F*G)%n
+		T = (E*H)%n
+	except:
+		return
+
+	return [X,Y,Z,T]
+
+
+#----------------------------------------------------------#
+
+
+def padd_twist_ed_base(P,n):
+	if P == None: return
+
 	A = P[0]*base_ext[0]
 	B = P[1]*base_ext[1]
 	C = P[3]*base_ext_t[3]
@@ -210,21 +264,39 @@ def padd_twist_ed_base(P):
 	F = D-C
 	G = D+C
 	H = B-a*A
-	return [E*F,G*H,F*G]
 
-def smult_dblandadd(P,s):
+	try:
+		X = (E*F)%n
+		Y = (G*H)%n
+		Z = (F*G)%n
+	except:
+		return
+
+	return [X,Y,Z]
+
+
+#----------------------------------------------------------#
+################### END POINT ARITHMETIC ###################
+#----------------------------------------------------------#
+
+
+#----------------------------------------------------------#
+####               SCALAR MULTIPLICATION                ####
+#----------------------------------------------------------#
+def smult_dblandadd(P,s,n):
 	b = bin(s)
 	R = P
 	for i in range (2,len(b)):
-		R = pdbl_twist_ed(R)
+		R = pdbl_twist_ed(R,n)
 		if b[i] == 1:
 #			R = padd_twist_ed_min_one_base(R)
-			R = padd_twist_ed_base(R)
+			R = padd_twist_ed_base(R,n)
 	return R
 
 
-numtry = 0
-
+#----------------------------------------------------------#
+####            Elliptic Curve Method (ECM)             ####
+#----------------------------------------------------------#
 def ecm(n):
 	B = RR(n^(1/6)).ceiling()		###
 	s = 2
@@ -235,20 +307,17 @@ def ecm(n):
 
 #-- select curve & base point --#
 
+	global numtry
+	numtry = 0
+
 	for i in range (len(alist)):
-		print "in loop a"
 		a_ = alist[i]
 
 		for j in range (len(dlist[i])):
-			print "in loop d"
 			d = dlist[i][j]
 
 			for base in blist[i][j]:
-				print "in loop b"
-#				x = base[0]
-#				y = base[1]
 
-				global numtry
 				numtry += 1
 
 				global a
@@ -261,28 +330,30 @@ def ecm(n):
 				base_ext_t = [base[0],base[1],1,base[0]*base[1]*2*d]
 
 
-				print "start smult"
-				P = smult_dblandadd(base_ext,s)
-				print "end smult"
+				P = smult_dblandadd(base_ext,s,n)
 
-
-				if gcd(P[0].denom(),n) == 1:
+				if (P != None):
 					r = gcd(P[0]%n,n)
-					return [r,n/r]
-
+					if r != 1:
+						return [r,n/r]
 				else:
-#					print "skip : ECM fails"
 					r = 1
 
 	if r == 1:
 		r = n
+#		print "-----> fail <-----"
 	return [r,n/r]
 
 
 
+#----------------------------------------------------------#
+####                   FACTORIZATION                    ####
+#----------------------------------------------------------#
 def ecm_fac(n,l):
 	flist = []
 	n,flist = divfirstnprime(n,l,flist)
+	global numpre
+	numpre += 1
 
 	if ZZ(n).is_prime():
 		flist.append(n)
@@ -294,35 +365,53 @@ def ecm_fac(n,l):
 
 	rlst = []
 
+	global numecm
+	numecm += 1
+
 	while n != 1 and B > B1:
-		print "start split"
-		split = ecm(n)
-		print "end split"
-		print split[0],split[1],B
-		if split[1] != 1:
-			rlst.append(split[1])
-		else:
-			B -= 1
-		n = split[0]
 		if ZZ(n).is_prime():
 			flist.append(n)
 			if len(rlst) > 0:
 				n = rlst.pop()
+				continue
 			else:
 				return flist
-	return flist
+
+		split = ecm(n)
+#		print "-->",split[0],split[1],B
+		if split == None:
+			B -= 1
+		elif split[1] != 1:
+			B = B2
+			rlst.append(split[1])
+			n = split[0]
+		else:
+#			print "try diff B"
+			B -= 1
+
+
+	global numpos
+	numpos += 1
+	return trialdivfrom(n,l+1,flist)
+#----------------------------------------------------------#
 
 
 
+##############
+##   TEST   ##
+##############
 
-#n = randrange(10^8)+1
-#n = 107*1297
-n = 139*70501
-print n
-print ecm_fac(n,100)
-print n.factor()
-print numtry
+for i in range (50):
+#	numtry = 0
+	n = randrange(10^10)+1
+#	print n
+#	print ecm_fac(n,100)
+	ecm_fac(n,100)
+#	print n.factor()
+#	print numtry
+#	print
 
+print numpre-numecm,numecm-numpos,numpos
 
 # Check validity of a,d,base #
 
