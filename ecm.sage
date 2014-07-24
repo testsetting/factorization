@@ -401,24 +401,22 @@ def ecm_fac(n,l):
 ##   TEST   ##
 ##############
 
-for i in range (50):
+#for i in range (50):
 #	numtry = 0
-	n = randrange(10^10)+1
+#	n = randrange(10^10)+1
 #	print n
 #	print ecm_fac(n,100)
-	ecm_fac(n,100)
 #	print n.factor()
 #	print numtry
 #	print
 
-print numpre-numecm,numecm-numpos,numpos
 
-# Check validity of a,d,base #
+for i in range (100):
+	n = randrange(10^10)+1
+	ecm_fac(n,100)
 
-# a * x^2 + y^2 = 1 + d * x^2 * y^2
-#  x  = X/Z
-#  y  = Y/Z
-# x*y = T/Z
+o = open('result.txt','w')
+o.write(str(numpre-numecm) + " , " + str(numecm-numpos) + " , " + str(numpos))
+o.close()
 
-
-	
+#print numpre-numecm,numecm-numpos,numpos

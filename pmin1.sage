@@ -122,20 +122,24 @@ def pm1_fac(n,l):
 
 
 
-for i in range (20):
-	n = randrange(10^10)+1
+#for i in range (20):
+#	n = randrange(10^8)+1
 #	print n
-	pm1_fac(n,100)
 #	print pm1_fac(n,100)
 #	print n.factor()
 #	print 
 
-print pretrial-pminus1,pminus1-postrial,postrial
 
-#for i in range (10):
-#	n = randrange(10^5)+1
-#	if n%2 == 0: n+=1
-#	print pm1_a(n,2)
+for i in range (100):
+	n = randrange(10^10)+1
+	pm1_fac(n,100)
+
+o = open('result.txt','w')
+o.write(str(pretrial-pminus1) + " , " + str(pminus1-postrial) + " , " + str(postrial))
+o.close()
+
+#print pretrial-pminus1,pminus1-postrial,postrial
+
 
 
 
