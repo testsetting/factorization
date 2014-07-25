@@ -14,7 +14,7 @@ def pm1_aB(n,a,B):
 		s = lcm(s,i)
 
 #	d = gcd(a^s-1,n)
-	d = gcd(exp_loop(a,s)-1,n)
+	d = gcd(exp_mod_loop(a,s,n)-1,n)
 
 	if d == 1:
 		d = n
@@ -131,10 +131,10 @@ def pm1_fac(n,l):
 
 
 for i in range (100):
-	n = randrange(10^10)+1
+	n = randrange(10^50)+1
 	pm1_fac(n,100)
 
-o = open('result.txt','w')
+o = open('result50.txt','w')
 o.write(str(pretrial-pminus1) + " , " + str(pminus1-postrial) + " , " + str(postrial))
 o.close()
 
