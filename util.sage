@@ -44,6 +44,17 @@ def exp_loop(b,e):
 
 #------------------------------------------------#
 
+def exp_mod_loop(b,e,n):
+	p = b
+	t = 1
+	while e > 0 :
+		if e&1 : t = (t*p)%n
+		e = e>>1
+		p = (p*p)%n
+	return t%n
+
+#------------------------------------------------#
+
 #def isPrime(n):
 #	list = []
 #	for i in range (2,n+1):
