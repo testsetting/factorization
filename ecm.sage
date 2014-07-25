@@ -412,10 +412,10 @@ def ecm_fac(n,l):
 
 
 for i in range (100):
-	n = randrange(10^10)+1
+	n = randrange(10^50)+1
 	ecm_fac(n,100)
 
-o = open('result.txt','w')
+o = open('result50.txt','w')
 o.write(str(numpre-numecm) + " , " + str(numecm-numpos) + " , " + str(numpos))
 o.close()
 
